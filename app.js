@@ -66,7 +66,7 @@ app.get("/tasklists/:tasklistId", (req, res) => {
 app.post("/tasklists", (req, res) => {
   // console.log("Hello I am inside post method");
   console.log(req.body);
-  let taskListObj = { title: req.body.title };
+  let taskListObj = { 'title': req.body.title };
   TaskList(taskListObj)
     .save()
     .then((taskList) => {
@@ -109,6 +109,71 @@ app.delete("/tasklists/:tasklistId", (req, res) => {
       console.log(error);
     });
 });
+
+//crud operation for task, a stask shoul always belong to a tasklist
+//get all task for 1 tasklist   http://localhost:3000/tasklists/:tasklistId/tasks
+//http://localhost:3000/tasklists/:tasklistId/tasks/:taskId
+
+app.get('/tasklists/:tasklistId/tasks',(req,res)=>{
+    Task.find({_taskListId: req.params.tasklistId})
+    .then((tasks) => {
+        res.status(200).send(tasks);
+    })
+    .catch((error) => {
+        console.log(error);
+    });
+
+});
+
+//create a task inside a particular tasklist
+app.post("/tasklists/:tasklistId/tasks", (req, res) => {
+    // console.log("Hello I am inside post method");
+    console.log(req.body);
+    let taskObj = { 'title': req.body.title, '_taskListId': req.params.tasklistId };
+    Task(taskObj)
+      .save()
+      .then((task) => {
+        res.status(201);
+        res.send(task);
+      })
+      .catch((error) => {
+        console.log(error);
+        res.status(500);
+      });
+  });
+  //http://localhost:3000/tasklists/:tasklistId/tasks/:taskId
+  //get one task inside one tasklist
+app.get('/tasklists/:tasklistId/tasks/:taskId',(req,res)=>{
+    Task.findOne({_taskListId: req.params.tasklistId, _id: req.params.taskId})
+    .then((task) => {
+        res.status(200).send(task);
+    })
+    .catch((error) => {
+        console.log(error);
+    });
+
+});
+
+//update one task belonging to one tasklist
+app.patch("/tasklists/:tasklistId/tasks/:taskId", (req, res) => {
+    Task.findOneAndUpdate({ _taskListId: req.params.tasklistId, _id:req.params.taskId }, { $set: req.body })
+      .then((task) => {
+        res.status(200).send(task);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  });
+//delete one task from tasklist
+app.delete("/tasklists/:tasklistId/tasks/:taskId", (req, res) => {
+    Task.findByIdAndDelete({_taskListId: req.params.tasklistId, _id: req.params.taskId})
+      .then((task) => {
+        res.status(201).send(task);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  });
 
 app.listen(3000, () => {
   console.log("Server started on port 3000!");
